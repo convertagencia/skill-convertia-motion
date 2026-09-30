@@ -723,6 +723,7 @@ Caminhos relativos ao próprio `score.json`.
 | `music.file` | se houver música | arquivo da faixa |
 | `music.drop_in_song` / `drop_in_film` | não | a música começa em `drop_in_song - drop_in_film` |
 | `music.start` | não | alternativa: segundo da música em que o filme começa |
+| `music.segments` | não | música montada por trechos: `[[inicio, fim], ...]` em segundos da faixa, emendados a partir do segundo 0 do filme (cortar em início de compasso). Serve pra repetir compassos e alongar o trecho entre dois drops. Substitui `drop_in_song`/`drop_in_film` |
 | `music.gain` | não | volume da música (padrão 0,8) |
 | `music.fade_in` | não | fade de entrada (padrão 0,25 s) |
 | `music.source` / `license` | recomendado | vão para o `CREDITOS.txt` |
@@ -759,7 +760,8 @@ Trechos parados renderizam mais rápido (as capturas do meio são puladas). Film
 | Fonte errada no vídeo | A fonte precisa estar em arquivo local com `@font-face`; link do Google Fonts não é confiável no render |
 | Fantasma ou faixas em movimento rápido | Subir `--sub` para 12 |
 | Música acaba antes do filme | Aviso do `audio.mjs`: escolher outro trecho (outro drop) ou outra faixa |
-| BPM estimado dobrado ou pela metade | `analyze-song.mjs --bpm <valor certo>` |
+| BPM estimado dobrado ou pela metade | o `analyze-song.mjs` lista também os outros picos; conferir e passar `--bpm <valor certo>` |
+| Render parou no meio | Notebook entrou em repouso ou teve a tampa fechada: deixar aberto durante o render (no macOS o render já evita o repouso por inatividade) |
 | Git do projeto reclama de repositório embutido | Ver [seção 4](#4-atualizar-desinstalar-e-manter-no-git-do-projeto) |
 | Caminho com espaço dá erro | Sempre entre aspas nos comandos |
 

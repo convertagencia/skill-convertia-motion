@@ -45,6 +45,8 @@ Corte seco só em rajada de impactos rítmicos (várias palavras batendo no beat
 - Texto que precisa ficar nítido numa transição: nunca escalar uma cópia borrada; trocar só o preenchimento.
 - Medir texto com canvas (`measureText`), não com `getBoundingClientRect`, quando a câmera está com escala.
 - Todo título numa linha em 16:9; em 9:16, no máximo 3 linhas curtas.
+- Troca de títulos no mesmo lugar: a saída de `M.rise` dura ~0,34 s + 0,03 s por palavra. O próximo título só entra depois disso (título de 6 palavras: `out` ≥ 0,5 s antes do `at` do próximo), senão os dois se sobrepõem.
+- Elementos que viajam até posições novas (encaixe numa linha, grade): atribuir os destinos de forma que os caminhos não se cruzem, e disparar na ordem em que o gatilho passa (ex: a ponta da linha).
 - Legibilidade mínima em celular: corpo ≥ 44 px no quadro de 1080 de largura, títulos ≥ 90 px.
 
 ## Imagens, logos e vídeo
@@ -66,6 +68,7 @@ Corte seco só em rajada de impactos rítmicos (várias palavras batendo no beat
 
 - Easing que devolve 1e-9 em vez de 0 dispara `if (u > 0)` cedo demais: usar `M.P`, que devolve 0 exato.
 - `goto` só com hash não recarrega a página: o render abre a URL completa com `?fmt&v&render=1`.
+- Render longo em notebook: fechar a tampa derruba o render (o Chromium morre no meio). O `render.mjs` roda `caffeinate -i` no macOS, que evita o sono por inatividade, mas não segura a tampa fechada. Avisar a estimativa de tempo e pedir pra deixar o notebook aberto. Ao encadear comandos, nunca usar `| tail` depois do render (esconde o erro e o passo seguinte roda sobre o vídeo antigo).
 - Caminho com espaço (comum no macOS): sempre entre aspas nos comandos.
 - ffmpeg do sistema pode não existir: a skill usa o `ffmpeg-static` da própria pasta.
 - A skill é só Node (sem Python) de propósito: um runtime só pra instalar em qualquer máquina.

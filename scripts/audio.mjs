@@ -41,15 +41,27 @@ const credits = [...(score.credits || [])];
 // Música: começa em drop_in_song - drop_in_film pra o drop cair no momento visual-chave.
 if (score.music) {
   const m = score.music, src = load(rel(m.file));
-  const start = m.start ?? ((m.drop_in_song ?? 0) - (m.drop_in_film ?? 0));
   const g = m.gain ?? 0.8, fi = Math.round((m.fade_in ?? 0.25) * SR);
-  const s0 = Math.round(start * SR);
-  for (let i = 0; i < N; i++) {
-    const j = s0 + i; if (j < 0 || j >= src.L.length) continue;
-    const e = i < fi ? i / fi : 1;
-    music.L[i] = src.L[j] * g * e; music.R[i] = src.R[j] * g * e;
-  }
-  if (s0 + N > src.L.length) console.log(`aviso: a música acaba antes do filme (${((src.L.length - s0) / SR).toFixed(2)}s de ${duration}s)`);
+  // "segments": [[inicio, fim], ...] em segundos da faixa, emendados em sequência a partir do segundo 0 do filme
+  // (cortar sempre no início de compasso). Sem segments: um trecho só, a partir de drop_in_song - drop_in_film.
+  const start = m.start ?? ((m.drop_in_song ?? 0) - (m.drop_in_film ?? 0));
+  const segs = m.segments || [[start, start + duration + 1]];
+  const xf = Math.round(0.012 * SR);
+  let pos = 0;
+  segs.forEach(([a, b], si) => {
+    const s0 = Math.round(a * SR), len = Math.round((b - a) * SR);
+    for (let k = 0; k < len + (si < segs.length - 1 ? xf : 0) && pos + k < N; k++) {
+      const j = s0 + k; if (j < 0 || j >= src.L.length) continue;
+      let e = 1;
+      if (si > 0 && k < xf) e = k / xf;                        // entra
+      if (si < segs.length - 1 && k >= len) e = 1 - (k - len) / xf;   // sai (sobreposto ao próximo)
+      music.L[pos + k] += src.L[j] * g * e; music.R[pos + k] += src.R[j] * g * e;
+    }
+    pos += len;
+  });
+  for (let i = 0; i < Math.min(fi, N); i++) { music.L[i] *= i / fi; music.R[i] *= i / fi; }
+  const last = segs[segs.length - 1];
+  if (Math.round(last[0] * SR) + (N - (pos - Math.round((last[1] - last[0]) * SR))) > src.L.length) console.log('aviso: a música pode acabar antes do filme');
   credits.unshift(`Música: ${m.source || m.file}${m.license ? ` (${m.license})` : ''}`);
 }
 if (score.bed) { const b = fromSpec(score.bed); for (let i = 0; i < Math.min(N, b.L.length); i++) { music.L[i] += b.L[i]; music.R[i] += b.R[i]; } }

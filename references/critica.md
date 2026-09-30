@@ -23,6 +23,11 @@ O Claude lê imagens. Esse é o hábito que separa o vídeo "mid" do vídeo que 
 4. Listar os **3 piores problemas com tempo** (ex: "4,6 s: título encosta no card").
 5. Corrigir, re-renderizar o trecho afetado, dar nota de novo. **Repetir até toda nota ≥ 8.** Registrar cada rodada no `ROTEIRO.md`.
 
+## Leitura do relatório
+
+- "Cortes secos" do `check.mjs` = quadros em que a imagem muda muito de uma vez. Flood, íris ou balão enchendo a tela entram nessa conta mesmo sendo contínuos. Sempre conferir com `sheets --at <tempo>` antes de mexer: se a tira mostra a forma crescendo quadro a quadro, é carry, não corte.
+- "Pulos" isolados no beat costumam ser soco de câmera ou pulso de brilho com subida instantânea (o `M.punch` já tem 50 ms de subida).
+
 ## O que caçar
 
 - Texto sobreposto durante troca de cena.

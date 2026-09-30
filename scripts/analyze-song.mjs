@@ -20,13 +20,19 @@ const on = new Float32Array(fr); let mean = 0;
 for (let i = 1; i < fr; i++) { on[i] = Math.max(0, Math.log(env[i] + 1e-6) - Math.log(env[i - 1] + 1e-6)); mean += on[i]; }
 mean /= fr; for (let i = 0; i < fr; i++) on[i] -= mean;
 const fps = SR / hop, M = Math.min(fr, 6000);
+// Peso pra andamentos perto de 115 BPM: a autocorrelação empata entre o tempo real, a metade e 2/3 dele.
 let best = { bpm: 0, v: -Infinity };
-for (let lag = Math.ceil(0.33 * fps); lag <= Math.floor(1.0 * fps); lag++) {
+const cands = [];
+for (let lag = Math.ceil(0.25 * fps); lag <= Math.floor(1.3 * fps); lag++) {
   let s = 0; for (let i = 0; i + lag < M; i++) s += on[i] * on[i + lag];
-  if (s > best.v) best = { bpm: 60 * fps / lag, v: s };
+  const bpm = 60 * fps / lag, w = Math.exp(-0.5 * (Math.log2(bpm / 115) / 0.6) ** 2);
+  cands.push({ bpm, s });
+  if (s * w > best.v) best = { bpm, v: s * w };
 }
+const alts = cands.sort((a, b) => b.s - a.s).slice(0, 4).map(c => c.bpm.toFixed(1)).join(', ');
 const bpm = arg('bpm') ?? best.bpm;
 console.log(`\n${file.split('/').pop()}  duração ${dur.toFixed(1)}s  BPM ~${best.bpm.toFixed(1)}${arg('bpm') ? ` (usando ${bpm})` : ''}  beat ${(60 / bpm).toFixed(3)}s`);
+console.log(`  outros picos: ${alts} (conferir: ataques fortes depois do drop devem cair a cada 4 beats)`);
 
 console.log('\nenergia por segundo (total / grave, dB):');
 const row = [];

@@ -18,6 +18,7 @@ Gêneros por clima (ponto de partida): 60-80 BPM solene/premium, 90-110 suave/co
 3. No `score.json`: `"drop_in_song": <medido>, "drop_in_film": <instante da virada no filme>`. A música começa em `drop_in_song - drop_in_film`.
 4. Cenas começam no beat (`beat = 60 / BPM`). `render.mjs beats` gera um still por beat pra conferir.
 5. Se a música acabar antes do filme, o `audio.mjs` avisa: trocar de trecho ou de faixa.
+6. **Filme mais longo que o trecho entre dois drops:** montar a música por trechos com `"segments": [[inicio, fim], ...]` (segundos da faixa, emendados em sequência a partir do segundo 0 do filme, com crossfade curto). Cortar sempre em início de compasso. Ex.: repetir 2 compassos da parte de construção pra o segundo drop cair no lugar certo.
 
 ## Efeitos
 

@@ -145,6 +145,8 @@ async function full(draft) {
   const out = path.resolve(opt.out || path.join(outDir, `${draft ? 'draft' : 'video'}-${fmt}-${variant}${from || to < T ? `-${from}-${to}` : ''}.mp4`));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cmotion-'));
   console.log(`${draft ? 'rascunho' : 'render'} ${fmt} v${variant}: ${n} quadros, ${fps} fps, ${sub} subquadros, ${workers} workers -> ${out}`);
+  // macOS: impede o sistema de dormir por inatividade enquanto renderiza (não segura a tampa fechada).
+  if (process.platform === 'darwin') { try { spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore', detached: true }).unref(); } catch { /* sem caffeinate */ } }
   const browser = await chromium.launch();
   let done = 0; const t0 = Date.now();
   const progress = () => {

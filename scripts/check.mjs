@@ -66,8 +66,10 @@ if (pops.length) warn.push(`${pops.length} pulo(s) de quadro: conferir se são i
 if (holds.some(h => h.len > 2.5)) warn.push('trecho parado > 2,5 s: risco de perder o espectador (ok só se for a pausa planejada)');
 if (stillPct < 5 && dur > 8) warn.push('quase nenhum respiro: sem pausa, os momentos fortes não se destacam');
 if (cv < 0.45) warn.push(`movimento muito uniforme (variação ${cv.toFixed(2)}): tende a parecer slide, variar a duração dos planos`);
+// Mediana, não média: um clarão ou flood de tela cheia infla a média e faz qualquer abertura parecer fraca.
+const med = [...energy].sort((a, b) => a - b)[Math.floor(energy.length / 2)];
 const first2 = energy.slice(0, 4).reduce((a, b) => a + b, 0) / 4;
-if (first2 < em * 0.5) warn.push('primeiros 2 s com pouco movimento: gancho fraco');
+if (first2 < med * 0.5) warn.push('primeiros 2 s com pouco movimento: gancho fraco');
 let loud = null;
 if (audio) { loud = measure(video); if (Math.abs(loud.lufs + 14) > 1) warn.push(`loudness ${loud.lufs.toFixed(1)} LUFS (alvo -14)`); if (loud.tp > -1) warn.push(`true peak ${loud.tp.toFixed(1)} dBTP (alvo <= -1)`); }
 else warn.push('vídeo sem áudio');
