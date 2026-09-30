@@ -1,0 +1,12 @@
+{
+  "events": "out/events-9x16-A.json",
+  "sounds": {
+    "whoosh": "synth:whoosh?len=0.5",
+    "impact": "synth:impact"
+  },
+  "bed": "synth:pad?len=5",
+  "room": 0.14,
+  "fade_out": 0.6,
+  "lufs": -14,
+  "credits": []
+}

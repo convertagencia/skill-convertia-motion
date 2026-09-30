@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>FILME</title>
+<!--
+  ESQUELETO do convertia-motion. Mostra o contrato (seek puro, câmera, formatos, variantes, eventos de som),
+  NÃO um roteiro. Apague as cenas de exemplo e escreva as do conceito aprovado.
+  Prévia no navegador: film.html?play  |  film.html?t=2.4  |  &fmt=4x5  |  &v=B
+-->
+<style>
+  /* Fontes do cliente: arquivos locais em ./fonts (o render precisa funcionar offline e sempre igual). */
+  /* @font-face { font-family: 'Marca'; src: url('fonts/marca.woff2') format('woff2'); font-weight: 400 700; } */
+  :root {
+    --bg: #0a0a0a;         /* identidade do cliente: trocar todos os tokens */
+    --ink: #ffffff;
+    --muted: #9a9a9a;
+    --accent: #ffffff;
+    --line: rgba(255,255,255,.14);
+    --display: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    --body: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+  html, body { margin: 0; background: #000; overflow: hidden; }
+  #stage { position: relative; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--body); }
+  #world { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  #hud { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
+  .abs { position: absolute; }
+  .title { font-family: var(--display); font-weight: 700; letter-spacing: -0.035em; line-height: .98; }
+  .eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .card { background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 12px 40px rgba(0,0,0,.6); overflow: hidden; }
+  .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55)); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="world">
+    <div id="hook" class="abs title"></div>
+    <div id="card" class="abs card"><div id="cardTxt" class="abs eyebrow"></div></div>
+    <div id="end" class="abs title"></div>
+  </div>
+  <div id="hud">
+    <div class="vignette"></div>
+    <div id="cta" class="abs eyebrow"></div>
+  </div>
+</div>
+<script src="engine.js"></script>
+<script>
+const { E, P, S, lerp, clamp, W, H, SAFE } = M;
+const DUR = 5;
+
+// Textos por variante (teste A/B): ?v=A, ?v=B...
+const TXT = M.pick({
+  A: { hook: 'Gancho da variante A', card: 'Momento-chave', end: 'Marca', cta: 'Chamada pra ação' },
+  B: { hook: 'Gancho da variante B', card: 'Momento-chave', end: 'Marca', cta: 'Chamada pra ação' },
+});
+
+// Layout por formato: posições e tamanhos derivados de W, H e das áreas seguras. Nunca só cortar.
+const L = M.byFmt({
+  '16x9': { hookSize: 118, hookW: 1300 },
+  default: { hookSize: W < H ? 120 : 104, hookW: W - SAFE.left - SAFE.right },
+});
+
+const $ = id => document.getElementById(id);
+const hook = $('hook'), card = $('card'), cardTxt = $('cardTxt'), end = $('end'), cta = $('cta');
+hook.textContent = TXT.hook; cardTxt.textContent = TXT.card; end.textContent = TXT.end; cta.textContent = TXT.cta;
+Object.assign(hook.style, { left: SAFE.left + 'px', top: H * 0.36 + 'px', width: L.hookW + 'px', fontSize: L.hookSize + 'px' });
+Object.assign(end.style, { left: 0, width: W + 'px', top: H / 2 - 70 + 'px', fontSize: '140px', textAlign: 'center' });
+Object.assign(cta.style, { left: 0, width: W + 'px', textAlign: 'center', top: H - SAFE.bottom - 40 + 'px', fontSize: '30px', color: 'var(--ink)' });
+Object.assign(cardTxt.style, { left: '40px', top: '36px', fontSize: '28px' });
+
+// Sons: [t, nome, ganho, pan]. Nomes = sintetizados (click, pop, whoosh, impact...) ou mapeados no score.json.
+const EVENTS = [
+  [0.15, 'whoosh', 0.18],
+  [1.55, 'pop', 0.22],
+  [2.55, 'whoosh', 0.2],
+  [3.05, 'impact', 0.35],
+  [3.9, 'click', 0.25],
+];
+
+const cardSmall = { x: W / 2 - 260, y: H * 0.56, w: 520, h: 220, rad: 28 };
+
+function seek(t) {
+  // Beat 1 (0 a 1,6 s): gancho sobe palavra por palavra e sai pra cima.
+  M.rise(hook, t, { at: 0.12, out: 1.7 });
+
+  // Beat 2 (1,5 a 3,1 s): o card entra com spring e CRESCE até virar a tela (carrega pra próxima cena).
+  const inU = M.step(t - 1.5, 'snappy');
+  const grow = P(t, 2.45, 0.6, E.expoInOut);
+  const r = M.mixRect(cardSmall, M.fullRect(0), grow);
+  M.box(card, { ...r, y: r.y + (1 - inU) * 120 });
+  card.style.opacity = clamp(inU * 1.4);
+  cardTxt.style.opacity = 1 - P(t, 2.4, 0.2);
+
+  // Beat 3 (3 a 5 s): a marca pousa dentro do card que virou fundo. Câmera empurra de leve.
+  M.set(end, { s: M.S(t, 0.86, [[3.05, 1]], 'heavy'), o: P(t, 3.0, 0.25) });
+  M.rise(cta, t, { at: 3.85 });
+
+  const cam = M.camera(t, [[0, 1, W / 2, H / 2], [2.4, 1.04, W / 2, H / 2 + 40], [3.05, 1, W / 2, H / 2, E.expoOut], [DUR, 1.03, W / 2, H / 2]]);
+  M.applyCam($('world'), cam, { punch: M.punch(t, [3.05], 0.03) });
+}
+
+M.boot(seek, { duration: DUR, events: EVENTS });
+</script>
+</body>
+</html>
